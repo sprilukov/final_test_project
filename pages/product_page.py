@@ -14,13 +14,21 @@ class ProductPage(BasePage):
         except NoSuchElementException:
             print("Basket element not found")
 
-        try:
-            self.solve_quiz_and_get_code()
-        except NoAlertPresentException:
-            print("No alert appeared")
+        #try:
+        #    self.solve_quiz_and_get_code()
+        #except NoAlertPresentException:
+        #    print("No alert appeared")
 
     def naming_equality(self):
         assert self.item_name == self.item_bname, 'Naming is the same'
 
     def check_price_equality(self):
         assert self.item_price == self.total_price, 'Price is the same'
+
+    def should_not_be_success_message(self):
+        assert self.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
+           "Success message is presented, but should not be"
+
+    def should_dissapear_of_success_message(self):
+        assert self.is_disappeared(*ProductPageLocators.SUCCESS_MESSAGE), \
+           "Success message is presented, but it must disappear"
