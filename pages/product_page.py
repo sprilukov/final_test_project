@@ -1,25 +1,26 @@
-import re
 from .base_page import BasePage
 from .locators import ProductPageLocators
 
 
 class ProductPage(BasePage):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def add_product_to_bucket(self):
+        button_add_product = self.browser.find_element(*ProductPageLocators.BUTTON_BUY)
+        button_add_product.click()
+    
+    def check_product_name_add(self):
+        product_name = self.browser.find_element(*ProductPageLocators.PRODUCT_NAME).text
+        add_product_name = self.browser.find_element(*ProductPageLocators.ADD_PRODUCT_TO_BUCKET).text
+        assert product_name==add_product_name, f"add {product_name}, but added {add_product_name}"
 
-    def add_to_cart(self):
-        addButton = self.wait_element(*ProductPageLocators.ADD_TO_CART_BUTTON)
-        self.move_n_click(addButton)
+    def check_product_price_add(self):
+        product_price = self.browser.find_element(*ProductPageLocators.PRICE_PRODUCT).text
+        bucket_price = self.browser.find_element(*ProductPageLocators.BUCKET_PRICE).text
+        assert product_price==bucket_price, f"add {product_price}, but added {bucket_price}"
+    
+    def should_not_be_success_message(self):
+        assert self.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
+        "Success message is presented, but should not be"
 
-    def should_be_success_message(self, productName):
-        message = self.wait_element(*ProductPageLocators.SUCCESS_MESSAGE)
-        assert message.text.lower() == f"{productName} has been added to your basket.", "Text message doesn't compare"
-
-    def should_not_be_success_message(self, timeout):
-        message = self.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE, timeout)
-        assert message, "Success message is present"
-
-    def should_be_equal_amount_in_cart(self, productPrice, lastAmount):
-        cartAmount = self.wait_element(*ProductPageLocators.AMOUNT_IN_CART)
-        cartAmount = re.search(r"\d+[.,]\d\d", cartAmount.text)[0]
-        assert float(cartAmount) == float(lastAmount)+float(productPrice), "Product price and Cart amount doesn't equal"
+    def is_disappeared_message(self):
+        assert self.is_disappeared(*ProductPageLocators.SUCCESS_MESSAGE), \
+        "is_disappeared_message"
