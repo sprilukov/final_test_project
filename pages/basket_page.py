@@ -1,19 +1,25 @@
-from .base_page import BasePage
-from .locators import ProductPageLocators
 from selenium.webdriver.common.by import By
-from selenium import webdriver
-import time
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-from .locators import BasePageLocators
+from .base_page import BasePage
+from .locators import BasketPageLocators
+
 
 class BasketPage(BasePage):
-    def should_be_empty_basket(self):
-        assert self.is_not_element_present(*BasePageLocators.BASKET_CONTENT), \
-           "basket is not empty"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def basket_should_be_empty(self):
+        assert self.is_not_element_present(*BasketPageLocators.BASKET_CONTENT_FORM, 2), "Basket content form is present"
+
+    def should_be_basket_url(self):
+        currentURL = self.browser.current_url
+        assert "basket" in currentURL, r"There is no /basket in current URL"
 
     def should_be_empty_basket_message(self):
-        assert self.is_disappeared(*BasePageLocators.BASKET_MESSAGE), \
-           "non label basket empty"
+        assert self.is_element_present(*BasketPageLocators.EMPTY_BASKET_MESSAGE)
+        emptyBasketMessage = self.wait_element(*BasketPageLocators.EMPTY_BASKET_MESSAGE)
+        assert emptyBasketMessage.text == "Your basket is empty. Continue shopping",\
+            f"Text message doesn't compare '{emptyBasketMessage.text}'"
+
+
+
+

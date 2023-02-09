@@ -1,57 +1,38 @@
-import pytest
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.options import Options as chromeOptions
+from selenium.webdriver.firefox.options import Options as firefoxOptions
+import time
+import pytest
+
 
 def pytest_addoption(parser):
-    parser.addoption('--browser_name', action='store', default=None,
-                     help="Choose browser: chrome or firefox")
-
-def pytest_addoption(parser):
-    parser.addoption('--language', action='store', default='en',
-                     help="Choose langs: (en, rus, es, ...)")
-
-@pytest.fixture(scope="function")
-def browser(request):
-    browser_name = request.config.getoption("browser_name")
-    browser = None
-    if browser_name == "chrome":
-        print("\nstart chrome browser for test..")
-        browser = webdriver.Chrome()
-    elif browser_name == "firefox":
-        print("\nstart firefox browser for test..")
-        browser = webdriver.Firefox()
-    else:
-        raise pytest.UsageError("--browser_name should be chrome or firefox")
-    yield browser
-    print("\nquit browser..")
-    browser.quit()
+    parser.addoption("--browser_name", action="store", default="chrome", help="choose browser name")
+    parser.addoption("--language", action="store", default="en", help="choose the language: en / ru / de ....etc")
+    parser.addoption("--headless", action="store", default="off", help="turn on / off browser UI")
 
 
+@pytest.fixture(scope="class")
+def browser(request):  # collecting initial options for selenium driver(browser)
+    browserName = request.config.getoption("browser_name").lower().strip()
+    userLanguage = request.config.getoption("language").lower().strip()
+    headlessOption = request.config.getoption("headless").lower().strip()
 
+    if browserName == "chrome" or browserName != "firefox":
+        options = chromeOptions()
+        options.add_experimental_option("prefs", {"intl.accept_languages": userLanguage})
+        options.add_argument("--start-maximized")
+        if headlessOption == "on":
+            options.add_argument("--headless")
+        webDriver = webdriver.Chrome(options=options)
+    elif browserName == "firefox":
+        options = firefoxOptions()
+        options.set_preference("intl.accept_languages", userLanguage)
+        webDriver = webdriver.Firefox(options=options)
 
+    webDriver.maximize_window()
+    yield webDriver
 
-
-
-
-
-
-
-import pytest
-from selenium import webdriver
-
-
-
-
-@pytest.fixture(scope="function")
-def browser(request):
-    print("\nstart Chrome..")
-    user_language = request.config.getoption("language")
-    options = Options()
-    options.add_experimental_option('prefs', {'intl.accept_languages': user_language})
-    browser = webdriver.Chrome(options=options)
-    yield browser
-    print("\nquit browser..")
-    browser.quit()
-
-
+    time.sleep(1)
+    print("\nTests ending")
+    webDriver.quit()
 

@@ -1,34 +1,25 @@
+import re
 from .base_page import BasePage
 from .locators import ProductPageLocators
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-import time
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException
+
 
 class ProductPage(BasePage):
-    def add_product(self):
-        try:
-            self.browser.implicitly_wait(5)
-            button = self.browser.find_element(*ProductPageLocators.BTN_BASKET)
-            button.click()
-        except NoSuchElementException:
-            print("Basket element not found")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        #try:
-        #    self.solve_quiz_and_get_code()
-        #except NoAlertPresentException:
-        #    print("No alert appeared")
+    def add_to_cart(self):
+        addButton = self.wait_element(*ProductPageLocators.ADD_TO_CART_BUTTON)
+        self.move_n_click(addButton)
 
-    def naming_equality(self):
-        assert self.item_name == self.item_bname, 'Naming is the same'
+    def should_be_success_message(self, productName):
+        message = self.wait_element(*ProductPageLocators.SUCCESS_MESSAGE)
+        assert message.text.lower() == f"{productName} has been added to your basket.", "Text message doesn't compare"
 
-    def check_price_equality(self):
-        assert self.item_price == self.total_price, 'Price is the same'
+    def should_not_be_success_message(self, timeout):
+        message = self.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE, timeout)
+        assert message, "Success message is present"
 
-    def should_not_be_success_message(self):
-        assert self.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
-           "Success message is presented, but should not be"
-
-    def should_dissapear_of_success_message(self):
-        assert self.is_disappeared(*ProductPageLocators.SUCCESS_MESSAGE), \
-           "Success message is presented, but it must disappear"
+    def should_be_equal_amount_in_cart(self, productPrice, lastAmount):
+        cartAmount = self.wait_element(*ProductPageLocators.AMOUNT_IN_CART)
+        cartAmount = re.search(r"\d+[.,]\d\d", cartAmount.text)[0]
+        assert float(cartAmount) == float(lastAmount)+float(productPrice), "Product price and Cart amount doesn't equal"
